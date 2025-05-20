@@ -6,12 +6,18 @@
   let orangeWins = '';
 
   async function sendData(body) {
+    console.log(body);
     try {
       const res = await fetch('http://localhost:1234/api/data', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
+
+        if (!res.ok) {
+          const text = await res.text(); // read raw response
+          throw new Error(`Server error (${res.status}): ${text}`);
+        }
 
       const result = await res.json();
       message = result.message;
@@ -44,15 +50,20 @@
     }
   }
 
-  function setWins() {
-  const blue = parseInt(blueWins);
-  const orange = parseInt(orangeWins);
-  if (!isNaN(blue) && !isNaN(orange)) {
-    sendData({ blueWins: blue, orangeWins: orange });
-    message = 'Win counts updated.';
-    blueWins = '';
-    orangeWins = '';
+  function setBlueWins() {
+    const num = parseInt(blueWins);
+    if (!isNaN(num)) {
+      sendData({ blueWins: num });
+      blueWins = '';
+    }
   }
+
+  function setOrangeWins() {
+    const num = parseInt(orangeWins);
+    if (!isNaN(num)) {
+      sendData({ orangeWins: num });
+      orangeWins = '';
+    }
 }
 
 </script>
@@ -78,19 +89,31 @@
   {#if message}
     <p style="margin-top: 1rem; color: green">{message}</p>
   {/if}
-</div>
 
-<div class="manual-set">
-  <label for="teamWins" >Blue Wins:</label>
-  <input type="number" autocomplete="off" min="0" bind:value={blueWins} />
-</div>
+ <div class="manual-set">
+    <label for="blueWinsInput">Blue Wins:</label>
+    <input
+      id="blueWinsInput"
+      type="number"
+      autocomplete="off"
+      min="0"
+      bind:value={blueWins}
+    />
+    <button on:click={setBlueWins}>Set</button>
+  </div>
 
-<div class="manual-set">
-  <label for="teamWins" >Orange Wins:</label>
-  <input type="number" autocomplete="off" min="0" bind:value={orangeWins} />
+  <div class="manual-set">
+    <label for="orangeWinsInput">Orange Wins:</label>
+    <input
+      id="orangeWinsInput"
+      type="number"
+      autocomplete="off"
+      min="0"
+      bind:value={orangeWins}
+    />
+    <button on:click={setOrangeWins}>Set</button>
+  </div>
 </div>
-
-<button on:click={setWins}>Set Wins</button>
 
 <style>
   h2 {
@@ -102,7 +125,7 @@
     background: #f4f4f4;
     border-radius: 10px;
     width: 500px;
-    height: 420px;
+    height: 720px;
     max-width: 800px;
     margin: 2rem auto;
     text-align: center;
