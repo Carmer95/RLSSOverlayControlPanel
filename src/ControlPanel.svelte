@@ -2,6 +2,8 @@
   let manualGameNumber = '';
   let bestOfValue = '';
   let message = '';
+  let blueWins = '';
+  let orangeWins = '';
 
   async function sendData(body) {
     try {
@@ -41,6 +43,18 @@
       bestOfValue = '';
     }
   }
+
+  function setWins() {
+  const blue = parseInt(blueWins);
+  const orange = parseInt(orangeWins);
+  if (!isNaN(blue) && !isNaN(orange)) {
+    sendData({ blueWins: blue, orangeWins: orange });
+    message = 'Win counts updated.';
+    blueWins = '';
+    orangeWins = '';
+  }
+}
+
 </script>
 
 <div class="panel">
@@ -51,13 +65,13 @@
 
   <div class="manual-set">
     <label for="gameInput">Set Game #:</label>
-    <input id="gameInput" type="number" bind:value={manualGameNumber} min="1" />
+    <input id="gameInput" type="number" autocomplete="off" bind:value={manualGameNumber} min="1" />
     <button on:click={setGameNumber}>Set</button>
   </div>
 
   <div class="manual-set">
     <label for="bestOfInput">Best Of:</label>
-    <input id="bestOfInput" type="number" bind:value={bestOfValue} min="1" />
+    <input id="bestOfInput" type="number" autocomplete="off" bind:value={bestOfValue} min="1" />
     <button on:click={setBestOf}>Set</button>
   </div>
 
@@ -65,6 +79,18 @@
     <p style="margin-top: 1rem; color: green">{message}</p>
   {/if}
 </div>
+
+<div class="manual-set">
+  <label for="teamWins" >Blue Wins:</label>
+  <input type="number" autocomplete="off" min="0" bind:value={blueWins} />
+</div>
+
+<div class="manual-set">
+  <label for="teamWins" >Orange Wins:</label>
+  <input type="number" autocomplete="off" min="0" bind:value={orangeWins} />
+</div>
+
+<button on:click={setWins}>Set Wins</button>
 
 <style>
   h2 {
