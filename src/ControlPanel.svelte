@@ -10,6 +10,7 @@
   let bestOf = 5;
   let blueLogoUrl = '';
   let orangeLogoUrl = '';
+  let startSeries = false;
 
   let ws;
 
@@ -34,6 +35,7 @@
           orangeWins = data.orangeWins?.toString() ?? orangeWins;
           blueLogoUrl = data.blueLogo?.toString() ?? blueLogoUrl;
           orangeLogoUrl = data.orangeLogo?.toString() ?? orangeLogoUrl;
+          startSeries = data.startSeries ?? false;
           manualGameNumber = currentGame.toString();
           bestOfValue = bestOf.toString();
           message = 'Data updated from server';
@@ -56,52 +58,11 @@
     };
   }
 
-  // Initial fetch fallback if WS is not connected yet
-  async function loadInitialData() {
-    try {
-      const res = await fetch('http://localhost:1234/api/data');
-      if (!res.ok) throw new Error(`Failed to load panel data: ${res.statusText}`);
-      const data = await res.json();
-
-      currentGame = data.currentGame ?? 1;
-      bestOf = data.bestOf ?? 5;
-
-      manualGameNumber = currentGame.toString();
-      bestOfValue = bestOf.toString();
-      blueWins = data.blueWins?.toString() ?? '';
-      orangeWins = data.orangeWins?.toString() ?? '';
-      blueLogoUrl = data.blueLogo?.toString() ?? '';
-      orangeLogoUrl = data.orangeLogo?.toString() ?? '';
-
-      console.log('Loaded initial panel data:', data);
-      message = 'Initial data loaded';
-    } catch (err) {
-      message = `Error loading initial data: ${err.message}`;
-    }
-  }
-
-  async function sendData(body) {
-    console.log('Sending:', body);
-    try {
-      const res = await fetch('http://localhost:1234/api/data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`Server error (${res.status}): ${text}`);
-      }
-
-      const result = await res.json();
-      message = result.message;
-
-      // After POST, no need to manually reload data since WS will push updates
-      // But optionally keep fallback:
-      // await loadInitialData();
-    } catch (err) {
-      message = 'Failed to send data: ' + err.message;
+   function sendData(payload) {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify(payload));
+    } else {
+      message = 'WebSocket not connected';
     }
   }
 
@@ -165,8 +126,11 @@
   }
 }
 
+  function startSeriesNow() {
+    sendData({ startSeries: true });
+  }
+
   onMount(() => {
-    loadInitialData();
     connectWebSocket();
   });
 
@@ -178,54 +142,67 @@
 <div class="panel">
   <h2>Game Control Panel</h2>
   <p style="margin-top: 0.5rem; font-weight: bold;">
-    Game {currentGame} of Best of {bestOf}
+    Game {currentGame} of Bo{bestOf}
   </p>
 
   <button on:click={incrementGame}>➕ Next Game</button>
   <button on:click={resetGame}>🔁 Reset Series</button>
 
-  <div class="manual-set">
-    <label for="blueLogoInput">Blue Logo URL:</label>
-    <input id="blueLogoInput" type="text" bind:value={blueLogoUrl} />
-    <button on:click={setBlueLogo}>Set</button>
-    <button on:click={() => {
-      sendData({ blueLogo: '' });
-      blueLogoUrl = '';
-    }}>Reset</button>
+  <div style="margin-top: 2rem;">
+    <button on:click={startSeriesNow} disabled={startSeries}>✅ Start Series</button>
+    {#if startSeries}
+      <p style="color: green; margin-top: 0.5rem;">Series has started</p>
+    {/if}
   </div>
 
-  <div class="manual-set">
-    <label for="orangeLogoInput">Orange Logo URL:</label>
-    <input id="orangeLogoInput" type="text" bind:value={orangeLogoUrl} />
-    <button on:click={setOrangeLogo}>Set</button>
-    <button on:click={() => {
-      sendData({ orangeLogo: '' });
-      orangeLogoUrl = '';
-    }}>Reset</button>
+  <div class="manual-set-l">
+    <div class="manual-set">
+      <label for="blueLogoInput">Blue Logo URL:</label>
+      <input id="blueLogoInput" type="text" bind:value={blueLogoUrl} />
+      <button on:click={setBlueLogo}>Set</button>
+      <button on:click={() => {
+        sendData({ blueLogo: '' });
+        blueLogoUrl = '';
+      }}>Reset</button>
+    </div>
+
+    <div class="manual-set">
+      <label for="orangeLogoInput">Orange Logo URL:</label>
+      <input id="orangeLogoInput" type="text" bind:value={orangeLogoUrl} />
+      <button on:click={setOrangeLogo}>Set</button>
+      <button on:click={() => {
+        sendData({ orangeLogo: '' });
+        orangeLogoUrl = '';
+      }}>Reset</button>
+    </div>
   </div>
 
-  <div class="manual-set">
-    <label for="gameInput">Set Game #:</label>
-    <input id="gameInput" type="number" autocomplete="off" bind:value={manualGameNumber} min="1" />
-    <button on:click={setGameNumber}>Set</button>
+  <div class="manual-set-g">
+    <div class="manual-set">
+      <label for="gameInput">Set Game #:</label>
+      <input id="gameInput" type="number" autocomplete="off" bind:value={manualGameNumber} min="1" />
+      <button on:click={setGameNumber}>Set</button>
+    </div>
+
+    <div class="manual-set">
+      <label for="bestOfInput">Best Of:</label>
+      <input id="bestOfInput" type="number" autocomplete="off" bind:value={bestOfValue} min="1" />
+      <button on:click={setBestOf}>Set</button>
+    </div>
   </div>
 
-  <div class="manual-set">
-    <label for="bestOfInput">Best Of:</label>
-    <input id="bestOfInput" type="number" autocomplete="off" bind:value={bestOfValue} min="1" />
-    <button on:click={setBestOf}>Set</button>
-  </div>
+  <div class="manual-set-w">
+    <div>
+      <label for="blueWinsInput">Blue Wins:</label>
+      <input id="blueWinsInput" type="number" autocomplete="off" min="0" bind:value={blueWins} />
+      <button on:click={setBlueWins}>Set</button>
+    </div>
 
-  <div class="manual-set">
-    <label for="blueWinsInput">Blue Wins:</label>
-    <input id="blueWinsInput" type="number" autocomplete="off" min="0" bind:value={blueWins} />
-    <button on:click={setBlueWins}>Set</button>
-  </div>
-
-  <div class="manual-set">
-    <label for="orangeWinsInput">Orange Wins:</label>
-    <input id="orangeWinsInput" type="number" autocomplete="off" min="0" bind:value={orangeWins} />
-    <button on:click={setOrangeWins}>Set</button>
+    <div>
+      <label for="orangeWinsInput">Orange Wins:</label>
+      <input id="orangeWinsInput" type="number" autocomplete="off" min="0" bind:value={orangeWins} />
+      <button on:click={setOrangeWins}>Set</button>
+    </div>
   </div>
 
   {#if message}
@@ -239,16 +216,18 @@
   }
 
   .panel {
+    background-color: rgba(255, 255, 255, 0.2);
     padding: 1rem;
-    background: #f4f4f4;
     border-radius: 10px;
-    width: 500px;
-    height: 820px;
+    width: 65%;
+    height: 80%;
     max-width: 800px;
     margin: 2rem auto;
     text-align: center;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    box-shadow: 0 0 10px rgba(0,0,0,0.6);
     font-family: sans-serif;
+    text-shadow: 0 0 5px #FFF, 0 0 10px #FFF, 0 0 20px #000000;
+    font-weight: 600;
   }
 
   button {
@@ -261,6 +240,27 @@
 
   .manual-set {
     margin-top: 2rem;
+  }
+
+  .manual-set-l {
+    margin: auto;
+    width: 80%;
+    margin-top: 2rem;
+    box-shadow: 0 0 10px rgba(0,0,0,0.6);
+  }
+
+  .manual-set-g {
+    margin: auto;
+    width: 60%;
+    margin-top: 2rem;
+    box-shadow: 0 0 10px rgba(0,0,0,0.8);
+  }
+
+  .manual-set-w {
+    margin: auto;
+    width: 60%;
+    margin-top: 2rem;
+    box-shadow: 0 0 10px rgba(0,0,0,0.8);
   }
 
   input {
