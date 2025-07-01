@@ -1,18 +1,15 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
 
-  let manualGameNumber = '';
-  let bestOfValue = '3';
-  let message = '';
-  let blueWins = '';
-  let orangeWins = '';
-  let currentGame = 1;
-  let bestOf = 5;
-  let blueLogoUrl = '';
-  let orangeLogoUrl = '';
-  let startSeries = false;
-
   let ws;
+  let countdown = 0, countdownInterval;
+
+  let currentGame = 1, bestOf = 5;
+  let blueWins = '', orangeWins = '';
+  let blueTeam = '', orangeTeam = '';
+  let blueLogoUrl = '', orangeLogoUrl = '';
+  let manualGameNumber = '', bestOfValue = '3';
+  let message = '', startSeries = false;
 
   // Connect to the WebSocket server to get live updates
   function connectWebSocket() {
@@ -33,6 +30,8 @@
           bestOf = data.bestOf ?? bestOf;
           blueWins = data.blueWins?.toString() ?? blueWins;
           orangeWins = data.orangeWins?.toString() ?? orangeWins;
+          blueTeam = data.blueTeam?.toString() ?? blueTeam;
+          orangeTeam = data.orangeTeam?.toString() ?? orangeTeam;
           blueLogoUrl = data.blueLogo?.toString() ?? blueLogoUrl;
           orangeLogoUrl = data.orangeLogo?.toString() ?? orangeLogoUrl;
           startSeries = data.startSeries ?? false;
@@ -40,6 +39,18 @@
           bestOfValue = bestOf.toString();
           message = 'Data updated from server';
           console.log('Received panelData via WS:', data);
+
+          if (msg.data.seriesOver === true) {
+            countdown = 70;
+            clearInterval(countdownInterval);
+            countdownInterval = setInterval(() => {
+              if (--countdown <= 0) clearInterval(countdownInterval);
+            }, 1000);
+          } else if (msg.data.seriesOver === false && msg.data.startSeries === false) {
+            startSeries = false;
+            message = 'Series reset — ready to start';
+            clearInterval(countdownInterval);
+          }
         }
       } catch (err) {
         console.error('WS message parse error:', err);
@@ -110,6 +121,22 @@
     }
   }
 
+  function setBlueTeam() {
+  const trimmed = orangeLogoUrl.trim();
+  if (trimmed) {
+      sendData({ blueTeam: trimmed });
+      blueTeam = '';
+    }
+  }
+
+  function setOrangeTeam() {
+  const trimmed = orangeLogoUrl.trim();
+  if (trimmed) {
+      sendData({ orangeTeam: trimmed });
+      orangeTeam = '';
+    }
+  }
+
   function setBlueLogo() {
   const trimmed = blueLogoUrl.trim();
   if (trimmed) {
@@ -173,6 +200,28 @@
       <button on:click={() => {
         sendData({ orangeLogo: '' });
         orangeLogoUrl = '';
+      }}>Reset</button>
+    </div>
+  </div>
+
+  <div class="manual-set-l">
+    <div class="manual-set">
+      <label for="blueTeamInput">Blue Team Name:</label>
+      <input id="blueTeamInput" type="text" bind:value={blueTeam} />
+      <button on:click={setBlueTeam}>Set</button>
+      <button on:click={() => {
+        sendData({ blueTeam: '' });
+        blueTeam = '';
+      }}>Reset</button>
+    </div>
+
+    <div class="manual-set">
+      <label for="orangeTeamInput">Orange Team Name:</label>
+      <input id="orangeTeamInput" type="text" bind:value={orangeTeam} />
+      <button on:click={setOrangeTeam}>Set</button>
+      <button on:click={() => {
+        sendData({ orangeTeam: '' });
+        orangeTeam = '';
       }}>Reset</button>
     </div>
   </div>
@@ -269,11 +318,7 @@
     padding: 0.3rem;
   }
 
-  #orangeLogoInput {
-    width: 140px;
-  }
-
-  #blueLogoInput {
+  #orangeLogoInput, #blueLogoInput, #blueTeamInput, #orangeTeamInput {
     width: 140px;
   }
 
