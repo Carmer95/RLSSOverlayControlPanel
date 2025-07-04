@@ -172,15 +172,11 @@
     Game {currentGame} of Bo{bestOf}
   </p>
 
-  <button on:click={incrementGame}>➕ Next Game</button>
-  <button on:click={resetGame}>🔁 Reset Series</button>
-
-  <div style="margin-top: 2rem;">
-    <button on:click={startSeriesNow} disabled={startSeries}>✅ Start Series</button>
-    {#if startSeries}
-      <p style="color: green; margin-top: 0.5rem;">Series has started</p>
-    {/if}
-  </div>
+  <button class="startSeriesButton" on:click={startSeriesNow} disabled={startSeries}>✅ Start Series</button>
+  {#if startSeries}
+    <p class="startSeries" style="color: green;">Series has started</p>
+  {/if}
+  <button class="resetSeriesButton" on:click={resetGame}>🔁 Reset Series</button>
 
   <div class="manual-set-l">
     <div class="manual-set">
@@ -228,15 +224,15 @@
 
   <div class="manual-set-g">
     <div class="manual-set">
-      <label for="gameInput">Set Game #:</label>
-      <input id="gameInput" type="number" autocomplete="off" bind:value={manualGameNumber} min="1" />
-      <button on:click={setGameNumber}>Set</button>
-    </div>
-
-    <div class="manual-set">
       <label for="bestOfInput">Best Of:</label>
       <input id="bestOfInput" type="number" autocomplete="off" bind:value={bestOfValue} min="1" />
       <button on:click={setBestOf}>Set</button>
+    </div>
+
+    <div class="manual-set">
+      <label for="gameInput">Set Game #:</label>
+      <input id="gameInput" type="number" autocomplete="off" bind:value={manualGameNumber} min="1" />
+      <button on:click={setGameNumber}>Set</button>
     </div>
   </div>
 
@@ -262,6 +258,21 @@
 <style>
   h2, p {
     color: black;
+  }
+
+  .startSeries{
+    position: absolute;
+    margin: auto;
+    margin-left: 326px;
+    top: 202px;
+  }
+
+  .startSeriesButton{
+    margin-right: 100px;
+  }
+
+  .resetSeriesButton{
+    margin-left: 100px;
   }
 
   .panel {
