@@ -6,10 +6,11 @@
 
   let currentGame = 1, bestOf = 5;
   let blueWins = '', orangeWins = '';
-  let blueTeam = '', orangeTeam = '';
+  let blueName = '', orangeName = '';
   let blueLogoUrl = '', orangeLogoUrl = '';
   let manualGameNumber = '', bestOfValue = '3';
   let message = '', startSeries = false;
+  let seriesInfo = '', blueLogoFileInput, orangeLogoFileInput;
 
   // Connect to the WebSocket server to get live updates
   function connectWebSocket() {
@@ -30,11 +31,12 @@
           bestOf = data.bestOf ?? bestOf;
           blueWins = data.blueWins?.toString() ?? blueWins;
           orangeWins = data.orangeWins?.toString() ?? orangeWins;
-          blueTeam = data.blueTeam?.toString() ?? blueTeam;
-          orangeTeam = data.orangeTeam?.toString() ?? orangeTeam;
+          blueName = data.blueName?.toString() ?? blueName;
+          orangeName = data.orangeName?.toString() ?? orangeName;
           blueLogoUrl = data.blueLogo?.toString() ?? blueLogoUrl;
           orangeLogoUrl = data.orangeLogo?.toString() ?? orangeLogoUrl;
           startSeries = data.startSeries ?? false;
+          seriesInfo = data.seriesInfo?.toString() ?? seriesInfo;
           manualGameNumber = currentGame.toString();
           bestOfValue = bestOf.toString();
           message = 'Data updated from server';
@@ -77,12 +79,20 @@
     }
   }
 
-  function incrementGame() {
-    if (currentGame >= bestOf) {
-      message = `Cannot increment — current game (${currentGame}) >= Best Of (${bestOf})`;
-      return;
+  // function incrementGame() {
+  //   if (currentGame >= bestOf) {
+  //     message = `Cannot increment — current game (${currentGame}) >= Best Of (${bestOf})`;
+  //     return;
+  //   }
+  //   sendData({ incrementGame: true });
+  // }
+
+  function setSeriesInfo() {
+    const trimmed = seriesInfo.trim();
+    console.log('Sending seriesInfo:', trimmed);
+    if (trimmed.length > 0) {
+      sendData({ seriesInfo: trimmed });
     }
-    sendData({ incrementGame: true });
   }
 
   function resetGame() {
@@ -121,37 +131,47 @@
     }
   }
 
-  function setBlueTeam() {
-  const trimmed = orangeLogoUrl.trim();
+  function setBlueName() {
+  const trimmed = blueName.trim();
   if (trimmed) {
-      sendData({ blueTeam: trimmed });
-      blueTeam = '';
+      sendData({ blueName: trimmed });
+      blueName = '';
     }
   }
 
-  function setOrangeTeam() {
-  const trimmed = orangeLogoUrl.trim();
+  function setOrangeName() {
+  const trimmed = orangeName.trim();
   if (trimmed) {
-      sendData({ orangeTeam: trimmed });
-      orangeTeam = '';
+      sendData({ orangeName: trimmed });
+      orangeName = '';
     }
   }
 
-  function setBlueLogo() {
-  const trimmed = blueLogoUrl.trim();
-  if (trimmed) {
-    sendData({ blueLogo: trimmed });
-    blueLogoUrl = '';
-  }
-}
+  // function setBlueLogo() {
+  // const trimmed = blueLogoUrl.trim();
+  //   if (trimmed) {
+  //     sendData({ blueLogo: trimmed });
+  //     blueLogoUrl = '';
+  //   }
+  // }
 
-  function setOrangeLogo() {
-  const trimmed = orangeLogoUrl.trim();
-  if (trimmed) {
-    sendData({ orangeLogo: trimmed });
-    orangeLogoUrl = '';
+  function handleBlueLogoFile(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const filename = file.name;
+      blueLogoUrl = filename;
+      sendData({ blueLogo: filename });
+    }
   }
-}
+
+  function handleOrangeLogoFile(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const filename = file.name;
+      orangeLogoUrl = filename;
+      sendData({ orangeLogo: filename });
+    }
+  }
 
   function startSeriesNow() {
     sendData({ startSeries: true });
@@ -178,46 +198,79 @@
   {/if}
   <button class="resetSeriesButton" on:click={resetGame}>🔁 Reset Series</button>
 
-  <div class="manual-set-l">
+  <div class="manual-set-i">
     <div class="manual-set">
-      <label for="blueLogoInput">Blue Logo URL:</label>
-      <input id="blueLogoInput" type="text" bind:value={blueLogoUrl} />
-      <button on:click={setBlueLogo}>Set</button>
+      <label for="seriesInfoInput">League / Series Info:</label>
+      <input
+        id="seriesInfoInput"
+        type="text"
+        bind:value={seriesInfo}
+        placeholder="RLSS Season 7 | Upper Finals"
+      />
+      <button on:click={setSeriesInfo}>Set</button>
       <button on:click={() => {
-        sendData({ blueLogo: '' });
-        blueLogoUrl = '';
-      }}>Reset</button>
-    </div>
-
-    <div class="manual-set">
-      <label for="orangeLogoInput">Orange Logo URL:</label>
-      <input id="orangeLogoInput" type="text" bind:value={orangeLogoUrl} />
-      <button on:click={setOrangeLogo}>Set</button>
-      <button on:click={() => {
-        sendData({ orangeLogo: '' });
-        orangeLogoUrl = '';
+        sendData({ seriesInfo: '' });
+        seriesInfo = '';
       }}>Reset</button>
     </div>
   </div>
-
-  <div class="manual-set-l">
+  
+  <div class="manual-set-t">
     <div class="manual-set">
-      <label for="blueTeamInput">Blue Team Name:</label>
-      <input id="blueTeamInput" type="text" bind:value={blueTeam} />
-      <button on:click={setBlueTeam}>Set</button>
+      <label for="blueLogoInput">Blue Logo:</label>
+      <input 
+        id="blueLogoInput" 
+        type="file" 
+        accept="image/*" 
+        on:change={handleBlueLogoFile}
+        bind:this={blueLogoFileInput} />
       <button on:click={() => {
-        sendData({ blueTeam: '' });
-        blueTeam = '';
+        sendData({ blueLogo: '' });
+        blueLogoUrl = '';
+        if (blueLogoFileInput) blueLogoFileInput.value = '';
       }}>Reset</button>
     </div>
 
     <div class="manual-set">
-      <label for="orangeTeamInput">Orange Team Name:</label>
-      <input id="orangeTeamInput" type="text" bind:value={orangeTeam} />
-      <button on:click={setOrangeTeam}>Set</button>
+      <label for="orangeLogoInput">Orange Logo:</label>
+      <input 
+        id="orangeLogoInput" 
+        type="file" 
+        accept="image/*" 
+        on:change={handleOrangeLogoFile}
+        bind:this={orangeLogoFileInput} />
       <button on:click={() => {
-        sendData({ orangeTeam: '' });
-        orangeTeam = '';
+        sendData({ orangeLogo: '' });
+        orangeLogoUrl = '';
+        if (orangeLogoFileInput) orangeLogoFileInput.value = '';
+      }}>Reset</button>
+    </div>
+
+    <div class="manual-set">
+      <label for="blueNameInput">Blue Team Name:</label>
+      <input 
+        id="blueNameInput" 
+        type="text" 
+        bind:value={blueName} 
+        placeholder="Heady Scarf Gang" />
+      <button on:click={setBlueName}>Set</button>
+      <button on:click={() => {
+        sendData({ blueName: '' });
+        blueName = '';
+      }}>Reset</button>
+    </div>
+
+    <div class="manual-set">
+      <label for="orangeNameInput">Orange Team Name:</label>
+      <input 
+        id="orangeNameInput" 
+        type="text" 
+        bind:value={orangeName} 
+        placeholder="Olivett Gaming" />
+      <button on:click={setOrangeName}>Set</button>
+      <button on:click={() => {
+        sendData({ orangeName: '' });
+        orangeName = '';
       }}>Reset</button>
     </div>
   </div>
@@ -237,13 +290,13 @@
   </div>
 
   <div class="manual-set-w">
-    <div>
+    <div class="manual-set">
       <label for="blueWinsInput">Blue Wins:</label>
       <input id="blueWinsInput" type="number" autocomplete="off" min="0" bind:value={blueWins} />
       <button on:click={setBlueWins}>Set</button>
     </div>
 
-    <div>
+    <div class="manual-set">
       <label for="orangeWinsInput">Orange Wins:</label>
       <input id="orangeWinsInput" type="number" autocomplete="off" min="0" bind:value={orangeWins} />
       <button on:click={setOrangeWins}>Set</button>
@@ -264,15 +317,18 @@
     position: absolute;
     margin: auto;
     margin-left: 326px;
-    top: 202px;
+    top: 204px;
+    
   }
 
   .startSeriesButton{
     margin-right: 100px;
+    margin-top: 4px;
   }
 
   .resetSeriesButton{
     margin-left: 100px;
+    margin-top: 4px;
   }
 
   .panel {
@@ -292,20 +348,31 @@
 
   button {
     margin: 0.5rem;
-    margin-top: 2rem;
+    margin-top: .5rem;
     padding: 0.4rem 1rem;
     font-size: 1rem;
     cursor: pointer;
   }
 
   .manual-set {
-    margin-top: 2rem;
+    display: flex;
+    align-items: center; /* vertical centering */
+    justify-content: center; /* optional: aligns contents to the left */
+    gap: 0.5rem; /* spacing between elements */
+    margin: 1.5rem 0;
   }
 
-  .manual-set-l {
+  .manual-set-i {
     margin: auto;
     width: 80%;
-    margin-top: 2rem;
+    margin-top: 1rem;
+    box-shadow: 0 0 10px rgba(0,0,0,0.6);
+  }
+
+  .manual-set-t {
+    margin: auto;
+    width: 80%;
+    margin-top: 1rem;
     box-shadow: 0 0 10px rgba(0,0,0,0.6);
   }
 
@@ -329,8 +396,8 @@
     padding: 0.3rem;
   }
 
-  #orangeLogoInput, #blueLogoInput, #blueTeamInput, #orangeTeamInput {
-    width: 140px;
+  #orangeLogoInput, #blueLogoInput, #blueNameInput, #orangeNameInput, #seriesInfoInput {
+    width: 180px;
   }
 
   label {
