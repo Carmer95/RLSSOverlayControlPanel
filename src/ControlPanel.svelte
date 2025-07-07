@@ -10,7 +10,9 @@
   let blueLogoUrl = '', orangeLogoUrl = '';
   let manualGameNumber = '', bestOfValue = '3';
   let message = '', startSeries = false;
-  let seriesInfo = '', blueLogoFileInput, orangeLogoFileInput;
+  let seriesInfo = '', blueLogoFileInput;
+  let orangeLogoFileInput, overlayVisible = false;
+  let resetNoticeTimeout, resetNotice = '';
 
   // Connect to the WebSocket server to get live updates
   function connectWebSocket() {
@@ -37,8 +39,9 @@
           orangeLogoUrl = data.orangeLogo?.toString() ?? orangeLogoUrl;
           startSeries = data.startSeries ?? false;
           seriesInfo = data.seriesInfo?.toString() ?? seriesInfo;
-          manualGameNumber = currentGame.toString();
-          bestOfValue = bestOf.toString();
+          manualGameNumber = currentGame.toString() ?? manualGameNumber;
+          bestOfValue = bestOf.toString() ?? bestOfValue;
+          overlayVisible = data.overlayVisible ?? false;
           message = 'Data updated from server';
           console.log('Received panelData via WS:', data);
 
@@ -103,6 +106,23 @@
     const num = parseInt(manualGameNumber);
     if (!isNaN(num)) {
       sendData({ setGameNumber: num });
+
+      // If game is reset to 1, reset series state too
+      if (num === 1) {
+        sendData({
+          blueWins: 0,
+          orangeWins: 0,
+          startSeries: false,
+          seriesOver: false,
+        });
+
+        resetNotice = 'Series has been reset';
+        clearTimeout(resetNoticeTimeout);
+        resetNoticeTimeout = setTimeout(() => {
+          resetNotice = '';
+        }, 5000);
+      }
+
       manualGameNumber = '';
     }
   }
@@ -184,15 +204,36 @@
   onDestroy(() => {
     if (ws) ws.close();
   });
+
+  $: seriesStarted =
+  startSeries === true ||
+  currentGame > 1 ||
+  +blueWins > 0 ||
+  +orangeWins > 0;
+
+  $: if (seriesStarted && !startSeries) {
+    sendData({ startSeries: true });
+  }
+
 </script>
 
 <div class="panel">
-  <h2>Game Control Panel</h2>
+  <div class="panelTitle">
+    <h2>Game Control Panel</h2>
+    <button class="showOverlay" on:click={() => {
+      overlayVisible = !overlayVisible;
+      sendData({ overlayVisible });
+    }}>
+      {overlayVisible ? '🛑 Hide Overlay' : '✅ Show Overlay'}
+    </button>
+  </div>
   <p style="margin-top: 0.5rem; font-weight: bold;">
     Game {currentGame} of Bo{bestOf}
   </p>
 
-  <button class="startSeriesButton" on:click={startSeriesNow} disabled={startSeries}>✅ Start Series</button>
+  <button class="startSeriesButton" on:click={startSeriesNow} disabled={seriesStarted}>
+  ✅ Start Series
+</button>
   {#if startSeries}
     <p class="startSeries" style="color: green;">Series has started</p>
   {/if}
@@ -306,9 +347,25 @@
   {#if message}
     <p style="margin-top: 1rem; color: green">{message}</p>
   {/if}
+
+  {#if resetNotice}
+    <p class="resetNotice" style="margin-top: 0.5rem; color: red;">{resetNotice}</p>
+  {/if}
+
 </div>
 
 <style>
+  .panelTitle{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .showOverlay{
+    height: 40px;
+    margin-left: 40px;
+  }
+
   h2, p {
     color: black;
   }
@@ -316,9 +373,15 @@
   .startSeries{
     position: absolute;
     margin: auto;
-    margin-left: 326px;
-    top: 204px;
-    
+    margin-left: 330px;
+    margin-top: -54px;
+  }
+  
+  .resetNotice{
+    position: absolute;
+    margin: auto;
+    margin-left: 314px;
+    top: 200px;
   }
 
   .startSeriesButton{
@@ -359,7 +422,7 @@
     align-items: center; /* vertical centering */
     justify-content: center; /* optional: aligns contents to the left */
     gap: 0.5rem; /* spacing between elements */
-    margin: 1.5rem 0;
+    margin: 1rem 0;
   }
 
   .manual-set-i {
@@ -398,6 +461,10 @@
 
   #orangeLogoInput, #blueLogoInput, #blueNameInput, #orangeNameInput, #seriesInfoInput {
     width: 180px;
+  }
+
+  #seriesInfoInput {
+    width: 240px;
   }
 
   label {
