@@ -220,13 +220,42 @@
 <div class="panel">
   <div class="panelTitle">
     <h2>Game Control Panel</h2>
-    <button class="showOverlay" on:click={() => {
-      overlayVisible = !overlayVisible;
-      sendData({ overlayVisible });
-    }}>
-      {overlayVisible ? '🛑 Hide Overlay' : '✅ Show Overlay'}
-    </button>
   </div>
+  <div class="overlayControl">
+    <p class="overlayStatus" style="margin-top: 0.5rem;">
+      Overlay Mode: 
+      {#if overlayVisible === true}
+        <span style="color: green;">Manual (Shown)</span>
+      {:else if overlayVisible === false}
+        <span style="color: red;">Manual (Hidden)</span>
+      {:else}
+        <span style="color: orange;">Auto</span>
+      {/if}
+    </p>
+    <div class="overlayButtons">
+      <button 
+      class="overlayButton"
+      on:click={() => {
+        overlayVisible = !overlayVisible;
+        sendData({ overlayVisible });
+      }}
+      >
+      {overlayVisible ? '🛑 Hide Overlay' : '✅ Show Overlay'}
+      </button>
+
+      <button 
+        class="overlayButton"
+        on:click={() => {
+          overlayVisible = null;
+          sendData({ overlayVisible });
+        }}
+        disabled={overlayVisible === null}
+        >
+        ↩️ Auto Overlay
+      </button>
+    </div>
+  </div>
+
   <p style="margin-top: 0.5rem; font-weight: bold;">
     Game {currentGame} of Bo{bestOf}
   </p>
@@ -359,11 +388,16 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
+    width: 100%;
+    height: 50px;
+
   }
 
-  .showOverlay{
-    height: 40px;
-    margin-left: 40px;
+  .overlayStatus{
+    position: absolute;
+    top: 94px;
+    left: 630px;
   }
 
   h2, p {
@@ -396,7 +430,7 @@
 
   .panel {
     background-color: rgba(255, 255, 255, 0.2);
-    padding: 1rem;
+    padding: .3rem 1rem 1rem 1rem;
     border-radius: 10px;
     width: 65%;
     height: 80%;
@@ -407,6 +441,18 @@
     font-family: sans-serif;
     text-shadow: 0 0 5px #FFF, 0 0 10px #FFF, 0 0 20px #000000;
     font-weight: 600;
+  }
+
+  .overlayButtons {
+    display: flex;
+    flex-direction: row;
+    justify-content: end;
+    margin-right: 74px;
+  }
+
+  .overlayButton {
+    font-size: 1rem;
+    cursor: pointer;
   }
 
   button {
