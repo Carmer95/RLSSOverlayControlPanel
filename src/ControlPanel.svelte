@@ -41,7 +41,7 @@
           seriesInfo = data.seriesInfo?.toString() ?? seriesInfo;
           manualGameNumber = currentGame.toString() ?? manualGameNumber;
           bestOfValue = bestOf.toString() ?? bestOfValue;
-          overlayVisible = data.overlayVisible ?? false;
+          overlayVisible = data.overlayVisible;
           message = 'Data updated from server';
           console.log('Received panelData via WS:', data);
 
@@ -194,7 +194,11 @@
   }
 
   function startSeriesNow() {
-    sendData({ startSeries: true });
+    overlayVisible = null;
+    sendData({ 
+      startSeries: true,
+      overlayVisible: null
+    });
   }
 
   onMount(() => {
@@ -246,10 +250,10 @@
       <button 
         class="overlayButton"
         on:click={() => {
+          console.log('Auto Overlay button clicked');
           overlayVisible = null;
-          sendData({ overlayVisible });
+          sendData({ overlayVisible: null });
         }}
-        disabled={overlayVisible === null}
         >
         ↩️ Auto Overlay
       </button>
@@ -433,7 +437,7 @@
     padding: .3rem 1rem 1rem 1rem;
     border-radius: 10px;
     width: 65%;
-    height: 80%;
+    height: 850px;
     max-width: 800px;
     margin: 2rem auto;
     text-align: center;
