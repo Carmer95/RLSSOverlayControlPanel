@@ -6,7 +6,7 @@
 
   let currentGame = 1, bestOf = 5;
   let blueWins = '', orangeWins = '';
-  let blueName = '', orangeName = '';
+  let panelBlueTeamName = '', panelOrangeTeamName  = '';
   let blueLogoUrl = '', orangeLogoUrl = '';
   let manualGameNumber = '', bestOfValue = '3';
   let message = '', startSeries = false;
@@ -33,8 +33,8 @@
           bestOf = data.bestOf ?? bestOf;
           blueWins = data.blueWins?.toString() ?? blueWins;
           orangeWins = data.orangeWins?.toString() ?? orangeWins;
-          blueName = data.blueName?.toString() ?? blueName;
-          orangeName = data.orangeName?.toString() ?? orangeName;
+          panelBlueTeamName = data.panelBlueTeamName?.toString() ?? panelBlueTeamName;
+          panelOrangeTeamName = data.panelOrangeTeamName?.toString() ?? panelOrangeTeamName;
           blueLogoUrl = data.blueLogo?.toString() ?? blueLogoUrl;
           orangeLogoUrl = data.orangeLogo?.toString() ?? orangeLogoUrl;
           startSeries = data.startSeries ?? false;
@@ -151,29 +151,29 @@
     }
   }
 
-  function setBlueName() {
-  const trimmed = blueName.trim();
-  if (trimmed) {
-      sendData({ blueName: trimmed });
-      blueName = '';
+  function setPanelBlueTeamName() {
+    const trimmed = panelBlueTeamName.trim();
+    if (trimmed.length > 0) {
+      sendData({ panelBlueTeamName: trimmed });
     }
   }
 
-  function setOrangeName() {
-  const trimmed = orangeName.trim();
-  if (trimmed) {
-      sendData({ orangeName: trimmed });
-      orangeName = '';
+  function setPanelOrangeTeamName() {
+    const trimmed = panelOrangeTeamName .trim();
+    if (trimmed.length > 0) {
+      sendData({ panelOrangeTeamName : trimmed });
     }
   }
 
-  // function setBlueLogo() {
-  // const trimmed = blueLogoUrl.trim();
-  //   if (trimmed) {
-  //     sendData({ blueLogo: trimmed });
-  //     blueLogoUrl = '';
-  //   }
-  // }
+  function resetPanelBlueTeamName() {
+    sendData({ panelBlueTeamName: '' });
+    panelBlueTeamName = '';
+  }
+
+  function resetPanelOrangeTeamName() {
+    sendData({ panelOrangeTeamName: '' });
+    panelOrangeTeamName = '';
+  }
 
   function handleBlueLogoFile(event) {
     const file = event.target.files[0];
@@ -325,13 +325,10 @@
       <input 
         id="blueNameInput" 
         type="text" 
-        bind:value={blueName} 
+        bind:value={panelBlueTeamName} 
         placeholder="Heady Scarf Gang" />
-      <button on:click={setBlueName}>Set</button>
-      <button on:click={() => {
-        sendData({ blueName: '' });
-        blueName = '';
-      }}>Reset</button>
+      <button on:click={setPanelBlueTeamName}>Set</button>
+      <button on:click={resetPanelBlueTeamName}>Reset</button>
     </div>
 
     <div class="manual-set">
@@ -339,13 +336,10 @@
       <input 
         id="orangeNameInput" 
         type="text" 
-        bind:value={orangeName} 
+        bind:value={panelOrangeTeamName} 
         placeholder="Olivett Gaming" />
-      <button on:click={setOrangeName}>Set</button>
-      <button on:click={() => {
-        sendData({ orangeName: '' });
-        orangeName = '';
-      }}>Reset</button>
+      <button on:click={setPanelOrangeTeamName}>Set</button>
+      <button on:click={resetPanelOrangeTeamName}>Reset</button>
     </div>
   </div>
 
