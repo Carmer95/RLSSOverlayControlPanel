@@ -6,7 +6,7 @@
 
   let currentGame = 1, bestOf = 5;
   let blueWins = '', orangeWins = '';
-  let blueName = '', orangeName = '';
+  let panelBlueTeamName = '', panelOrangeTeamName = '';
   let blueLogoUrl = '', orangeLogoUrl = '';
   let manualGameNumber = '', bestOfValue = '3';
   let message = '', startSeries = false;
@@ -33,8 +33,8 @@
           bestOf = data.bestOf ?? bestOf;
           blueWins = data.blueWins?.toString() ?? blueWins;
           orangeWins = data.orangeWins?.toString() ?? orangeWins;
-          blueName = data.blueName?.toString() ?? blueName;
-          orangeName = data.orangeName?.toString() ?? orangeName;
+          panelBlueTeamName = data.blueName?.toString() ?? panelBlueTeamName;
+          panelOrangeTeamName = data.orangeName?.toString() ?? panelOrangeTeamName;
           blueLogoUrl = data.blueLogo?.toString() ?? blueLogoUrl;
           orangeLogoUrl = data.orangeLogo?.toString() ?? orangeLogoUrl;
           startSeries = data.startSeries ?? false;
@@ -151,19 +151,19 @@
     }
   }
 
-  function setBlueName() {
-  const trimmed = blueName.trim();
+  function setPanelBlueTeamName() {
+  const trimmed = panelBlueTeamName.trim();
   if (trimmed) {
-      sendData({ blueName: trimmed });
-      blueName = '';
+      sendData({ panelBlueTeamName: trimmed });
+      panelBlueTeamName = '';
     }
   }
 
-  function setOrangeName() {
-  const trimmed = orangeName.trim();
+  function setPanelOrangeTeamName() {
+  const trimmed = panelOrangeTeamName.trim();
   if (trimmed) {
-      sendData({ orangeName: trimmed });
-      orangeName = '';
+      sendData({ panelOrangeTeamName: trimmed });
+      panelOrangeTeamName = '';
     }
   }
 
@@ -325,12 +325,12 @@
       <input 
         id="blueNameInput" 
         type="text" 
-        bind:value={blueName} 
+        bind:value={panelBlueTeamName} 
         placeholder="Heady Scarf Gang" />
-      <button on:click={setBlueName}>Set</button>
+      <button on:click={setPanelBlueTeamName}>Set</button>
       <button on:click={() => {
-        sendData({ blueName: '' });
-        blueName = '';
+        sendData({ panelBlueTeamName: '' });
+        panelBlueTeamName = '';
       }}>Reset</button>
     </div>
 
@@ -339,12 +339,12 @@
       <input 
         id="orangeNameInput" 
         type="text" 
-        bind:value={orangeName} 
+        bind:value={panelOrangeTeamName} 
         placeholder="Olivett Gaming" />
-      <button on:click={setOrangeName}>Set</button>
+      <button on:click={setPanelOrangeTeamName}>Set</button>
       <button on:click={() => {
-        sendData({ orangeName: '' });
-        orangeName = '';
+        sendData({ panelOrangeTeamName: '' });
+        panelOrangeTeamName = '';
       }}>Reset</button>
     </div>
   </div>
