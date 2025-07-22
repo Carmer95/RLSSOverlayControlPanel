@@ -33,8 +33,8 @@
           bestOf = data.bestOf ?? bestOf;
           blueWins = data.blueWins?.toString() ?? blueWins;
           orangeWins = data.orangeWins?.toString() ?? orangeWins;
-          panelBlueTeamName = data.blueName?.toString() ?? panelBlueTeamName;
-          panelOrangeTeamName = data.orangeName?.toString() ?? panelOrangeTeamName;
+          panelBlueTeamName = data.panelBlueTeamName?.toString() ?? panelBlueTeamName;
+          panelOrangeTeamName = data.panelOrangeTeamName?.toString() ?? panelOrangeTeamName;
           blueLogoUrl = data.blueLogo?.toString() ?? blueLogoUrl;
           orangeLogoUrl = data.orangeLogo?.toString() ?? orangeLogoUrl;
           startSeries = data.startSeries ?? false;
@@ -152,28 +152,28 @@
   }
 
   function setPanelBlueTeamName() {
-  const trimmed = panelBlueTeamName.trim();
-  if (trimmed) {
+    const trimmed = panelBlueTeamName.trim();
+    if (trimmed.length > 0) {
       sendData({ panelBlueTeamName: trimmed });
-      panelBlueTeamName = '';
     }
   }
 
   function setPanelOrangeTeamName() {
-  const trimmed = panelOrangeTeamName.trim();
-  if (trimmed) {
-      sendData({ panelOrangeTeamName: trimmed });
-      panelOrangeTeamName = '';
+    const trimmed = panelOrangeTeamName .trim();
+    if (trimmed.length > 0) {
+      sendData({ panelOrangeTeamName : trimmed });
     }
   }
 
-  // function setBlueLogo() {
-  // const trimmed = blueLogoUrl.trim();
-  //   if (trimmed) {
-  //     sendData({ blueLogo: trimmed });
-  //     blueLogoUrl = '';
-  //   }
-  // }
+  function resetPanelBlueTeamName() {
+    sendData({ panelBlueTeamName: '' });
+    panelBlueTeamName = '';
+  }
+
+  function resetPanelOrangeTeamName() {
+    sendData({ panelOrangeTeamName: '' });
+    panelOrangeTeamName = '';
+  }
 
   function handleBlueLogoFile(event) {
     const file = event.target.files[0];
@@ -328,10 +328,7 @@
         bind:value={panelBlueTeamName} 
         placeholder="Heady Scarf Gang" />
       <button on:click={setPanelBlueTeamName}>Set</button>
-      <button on:click={() => {
-        sendData({ panelBlueTeamName: '' });
-        panelBlueTeamName = '';
-      }}>Reset</button>
+      <button on:click={resetPanelBlueTeamName}>Reset</button>
     </div>
 
     <div class="manual-set">
@@ -342,10 +339,7 @@
         bind:value={panelOrangeTeamName} 
         placeholder="Olivett Gaming" />
       <button on:click={setPanelOrangeTeamName}>Set</button>
-      <button on:click={() => {
-        sendData({ panelOrangeTeamName: '' });
-        panelOrangeTeamName = '';
-      }}>Reset</button>
+      <button on:click={resetPanelOrangeTeamName}>Reset</button>
     </div>
   </div>
 
