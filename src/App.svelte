@@ -8,7 +8,7 @@
 
 <style>
   main {
-    background: url('./assets/RLSS-Control-Panel.png') no-repeat center center;
+    background: url('/assets/RLSS-Control-Panel.png') no-repeat center center;
     background-size: 100% 100%;
     position: absolute;
     top: 0;
